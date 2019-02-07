@@ -46,9 +46,9 @@ Download and install the Ham APRS module
 ```
 mkdir ~/src  
 cd ~/src  
-wget http://search.cpan.org/CPAN/authors/id/H/HE/HESSU/Ham-APRS-FAP-1.21.tar.gz  
-tar -zxvf ./Ham-APRS-FAP-1.21.tar.gz  
-cd Ham-APRS-FAP-1.21  
+wget http://search.cpan.org/CPAN/authors/id/H/HE/HESSU/Ham-APRS-FAP-1.20.tar.gz  
+tar -zxvf ./Ham-APRS-FAP-1.20.tar.gz  
+cd Ham-APRS-FAP-1.20  
 perl Makefile.PL  
 make  
 sudo make install
