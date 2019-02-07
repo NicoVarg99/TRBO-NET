@@ -207,7 +207,7 @@ sub push_updates()
         my $packet = sprintf('%s>APTR01:!%s', $ent->{'callsign'}, $aprs_position);
         #print "$packet\n";
 
-	if ($aprs_enable == 1){
+	if ($aprs_enable == 1) {
             my $ok = $is->sendline($packet);
             if (!$ok) {
                 $is->disconnect();
