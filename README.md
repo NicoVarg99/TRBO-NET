@@ -1,9 +1,9 @@
 ##ARS-E DAEMON AUTOMATIC REGISTRATION SERVICE EXTENDABLE  
 
 ###Running Installations  
-[OH2CH - Finland](http://oh2ch.org/trbo/state.php) 
+[OH2CH - Finland](http://oh2ch.org/trbo/state.php)
 
-[W8FSM - Fenton, MI](http://ars.moses.bz/) 
+[W8FSM - Fenton, MI](http://ars.moses.bz/)
 
 ###Installation Examples / Demos
 [KB9MWR Video](https://youtu.be/gxjyrYZn3Ds)
@@ -21,8 +21,8 @@
   By Wodie XE1SWL.
 
 ##2013-04-14 Updates
-  Created 'updates' branch with following updates. Will test and merge to master. 
-  Thanks to anonymous (non-working - still branched) 
+  Created 'updates' branch with following updates. Will test and merge to master.
+  Thanks to anonymous (non-working - still branched)
 
 * fix tx msg charset encode
 * can send group message
@@ -46,12 +46,12 @@ Download and install the Ham APRS module
 ```
 mkdir ~/src  
 cd ~/src  
-wget http://search.cpan.org/CPAN/authors/id/H/HE/HESSU/Ham-APRS-FAP-1.18.tar.gz  
-tar -zxvf ./Ham-APRS-FAP-1.18.tar.gz  
-cd Ham-APRS-FAP-1.18  
+wget http://search.cpan.org/CPAN/authors/id/H/HE/HESSU/Ham-APRS-FAP-1.21.tar.gz  
+tar -zxvf ./Ham-APRS-FAP-1.21.tar.gz  
+cd Ham-APRS-FAP-1.21  
 perl Makefile.PL  
 make  
-sudo make install 
+sudo make install
 cd ..  
 ```
 Install the TRBO-NET arsed program  
@@ -106,16 +106,16 @@ Assuming Radio IP of 192.168.10.1 and PC ip of 192.168.10.
 RUN THE PROGRAM!
 
 To start automatically at system boot
-add 
+add
 /usr/local/bin/arsed
-to 
+to
 /etc/rc.local
 ```
 vi /etc/rc.local
 ```
 
 ```
-arsed 
+arsed
 ```
 
 Install Apache webserver  
