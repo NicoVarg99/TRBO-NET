@@ -93,16 +93,20 @@ cp configs/arsed.mi5.conf /etc/arsed.conf
 vi /etc/arsed.mi5.conf  
 ```
 
-Reccommend static networking config in /etc/network/interfaces  
-Assuming Radio IP of 192.168.10.1 and PC ip of 192.168.10.
-```
-    auto-hotplug usb0
-    iface usb0 inet static
-        address 192.168.10.2
-        netmask 255.255.255.0
-        up route add -net 12.0.0.0/8 gw 192.168.10.1
-        down route del -net 12.0.0.0/8 gw 192.168.10.1
-```
+Wired network configuration:
+Assuming Radio IP of 192.168.10.1 and PC ip of 192.168.10.1 - Write
+`    
+ip route add 12.0.0.0/8 via 192.168.10.1 dev usb0
+`
+to file /etc/dhcpcd.exit-hook
+
+Bluetooth network configuration:
+Assuming Radio IP of 192.168.11.1 and PC ip of 192.168.11.2 - Write
+`    
+ip route add 12.0.0.0/8 via 192.168.11.1 dev bnep0
+`
+to file /etc/dhcpcd.exit-hook
+
 RUN THE PROGRAM!
 
 To start automatically at system boot
