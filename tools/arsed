@@ -52,98 +52,98 @@ my $alert_me = "couldn't be $me";
 sub dur_str($)
 {
     my($s) = @_;
-    
+
     my $str = '';
-    
+
     if ($s < 0) {
         $str = "-";
         $s *= -1;
     }
-    
+
     my $origs = $s;
-    
+
     if ($s < 1) {
         $str .= "0s";
         return $str;
     }
-    
+
     if ($s >= 24 * 60 * 60) {
         my $d = POSIX::floor($s / (24 * 60 * 60));
         $s -= $d * 24 * 60 * 60;
         $str .= $d . 'd ';
     }
-    
+
     if ($s >= 60 * 60) {
         my $d = POSIX::floor($s / (60 * 60));
         $s -= $d * 60 * 60;
         $str .= $d . "h";
     }
-    
+
     if ($s >= 60) {
         my $d = POSIX::floor($s / 60);
         $s -= $d * 60;
         $str .= $d . "m";
     }
-    
+
     if ($s >= 1) {
         if ($origs < 60*60) {
             $str .= POSIX::floor($s) . "s";
         }
     }
-    
+
     return $str;
 }
 
 sub reverse_geocode($$)
 {
     my($lat, $lng) = @_;
-    
+
     my $ua = LWP::UserAgent->new;
     $ua->agent(
         agent => "$me/$VERSION",
         timeout => 5,
         max_redirect => 0,
     );
-    
+
     my $url = "http://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$lng&sensor=true";
-    
+
     my $req = HTTP::Request->new(GET => $url);
     my $res = $ua->simple_request($req);
-    
+
     if ($res->status_line !~ /^(\d+)\s+(.*)$/) {
         warn "reverse_geocode: HTTP status line could not be parsed for " . $url . ": " . $res->status_line;
         return;
     }
-                                                                    
+
     my($status_code, $status_message) = ($1, $2);
-    
+
     if ($status_code ne 200) {
         warn "reverse_geocode: HTTP error $status_code: $status_message - " . $url;
         return;
     }
-    
+
     if ($res->header('Content-Type') !~ /application\/json/) {
         warn "reverse_geocode: Server returned wrong content type (should be application/json): " . $res->header('Content-Type') . " - " . $url;
         return;
     }
-    
+
     my $state = from_json($res->content);
     warn Dumper($state);
-    
+
     return if (!defined $state);
     return if ($state->{'status'} ne 'OK');
     return if (!defined $state->{'results'});
     my @res = @{ $state->{'results'} };
     $res = shift @res;
     return if (!defined $res->{'formatted_address'});
-    
+
     return $res->{'formatted_address'};
 }
 
 sub status_msg($)
 {
     my($s) = @_;
-    
+
     if ($net && $c->{'arse_status_group'}) {
         $net->{'tms'}->queue_msg($c->{'arse_status_group'}, $s, 1);
     }
@@ -169,7 +169,7 @@ sub is_connect()
         warn "Failed to connect to IS server: " . $is->{'error'} . "\n";
         return;
     }
-    
+
     warn "IS: connected\n";
 }
 
@@ -179,16 +179,16 @@ sub push_updates()
         @upd_q = ();
         return;
     }
-    
+
     if (!$is->connected()) {
         is_connect();
     }
-    
+
     if (!$is->connected()) {
         @upd_q = ();
         return;
     }
-    
+
     foreach my $ent (@upd_q) {
         my $aprs_position = Ham::APRS::FAP::make_position(
             $ent->{'latitude'},
@@ -197,8 +197,11 @@ sub push_updates()
             -1, # course
             -10000, # altitude
             (defined $ent->{'symbol'}) ? $ent->{'symbol'} : '/[', # symbol
-            1, # compression
-            0); # no ambiguity
+            { # options
+               'compressed'  => 1, # compression
+               'ambiguity' => 0, # no ambiguity
+            }
+        );
         #print "$aprs_position\n";
 
         my $packet = sprintf('%s>APTR01:!%s', $ent->{'callsign'}, $aprs_position);
@@ -211,37 +214,37 @@ sub push_updates()
             }
 	}
     }
-    
+
     @upd_q = ();
 }
 
 sub do_aprsis_beacon($)
 {
     my($rx) = @_;
-    
+
     my $reg = $rx->{'registry'};
-    
+
     $reg->{'last_aprsis'} = time();
     $reg->{'last_aprsis_lat'} = $rx->{'latitude'};
     $reg->{'last_aprsis_lng'} = $rx->{'longitude'};
-    
+
     warn "$me: beaconing position of " . $reg->{'id'} . ": " . $reg->{'callsign'} . "\n";
-    
+
     return 1;
 }
 
 sub consider_aprsis_beacon($)
 {
     my($rx) = @_;
-    
+
     my $reg = $rx->{'registry'};
-    
+
     $reg->{'last_lat'} = $rx->{'latitude'};
     $reg->{'last_lng'} = $rx->{'longitude'};
 
     # if never beaconed before, do it now
     return do_aprsis_beacon($rx) if (!defined $reg->{'last_aprsis'});
-    
+
     # if very often, don't do it now
     my $since_last = time() - $reg->{'last_aprsis'};
     if ($since_last < 0) {
@@ -250,7 +253,7 @@ sub consider_aprsis_beacon($)
         return 0;
     }
     return 0 if ($since_last < 30);
-    
+
     if (defined $reg->{'last_aprsis_lat'}) {
         my $dist = Ham::APRS::FAP::distance(
             $reg->{'last_aprsis_lng'}, $reg->{'last_aprsis_lat'},
@@ -264,17 +267,17 @@ sub consider_aprsis_beacon($)
             return do_aprsis_beacon($rx);
         }
     }
-    
+
     return do_aprsis_beacon($rx);
 }
 
 sub process_is_input($)
 {
     my($l) = @_;
-    
+
     my %packetdata;
     my $retval = Ham::APRS::FAP::parseaprs($l, \%packetdata);
-    
+
     return if (!$retval);
     if (defined $packetdata{'type'} && $packetdata{'type'} eq 'message') {
         process_is_message(\%packetdata);
@@ -293,12 +296,12 @@ $aprs_msg_cache->init();
 sub process_is_message($)
 {
     my($p) = @_;
-    
+
     #print "incoming IS message: " . Dumper($p);
-    
+
     my $radio = $net->registry_find_call($p->{'destination'});
     return if (!defined $radio);
-    
+
     my $cacheid;
     if (defined $p->{'messageid'}) {
         $is->sendline(make_ack($p->{'destination'}, $p->{'srccallsign'}, $p->{'messageid'}));
@@ -306,7 +309,7 @@ sub process_is_message($)
     } else {
         $cacheid = md5_hex($p->{'srccallsign'} . '_' . $p->{'destination'} . '_' . $p->{'message'});
     }
-    
+
     if ($aprs_msg_cache->add($cacheid)) {
         warn "APRS-IS message gateway dupe ignored: IS>TRBO "
             . $p->{'srccallsign'} . '>' . $p->{'destination'} . " " . $radio->{'id'}
@@ -314,18 +317,18 @@ sub process_is_message($)
             . ": " . $p->{'message'} . "\n";
         return;
     }
-    
+
     warn "APRS-IS message gateway: IS>TRBO "
         . $p->{'srccallsign'} . '>' . $p->{'destination'} . " " . $radio->{'id'}
         . ": " . $p->{'message'} . "\n";
-    
+
     $net->{'tms'}->queue_msg($radio->{'id'}, 'APRS ' . $p->{'srccallsign'} . ': ' . $p->{'message'});
 }
 
 sub dump_state()
 {
     return if (!defined $c->{'state_dump'});
-    
+
     my %state = (
         'time' => time(),
         'uptime' => time() - $start_time,
@@ -344,24 +347,24 @@ sub dump_state()
         'pkts_tx' => $net->{'ars'}->{'pkts_tx'} + $net->{'tms'}->{'pkts_tx'} + $net->{'loc'}->{'pkts_tx'},
         'registry' => $net->{'registry'}
     );
-    
+
     my $tmpf = $c->{'state_dump'} . '.tmp';
     if (!open(F, ">$tmpf")) {
         warn "$alert_me: could not open $tmpf for writing: $!\n";
         return;
     }
-    
+
     if (!print F to_json(\%state)) {
         warn "$alert_me: could not write to $tmpf: $!\n";
         close(F);
         return;
     }
-    
+
     if (!close(F)) {
         warn "$alert_me: could not close $tmpf after writing: $!\n";
         return;
     }
-    
+
     if (!rename($tmpf, $c->{'state_dump'})) {
         warn "$alert_me: could not rename $tmpf to " . $c->{'state_dump'} . ": $!\n";
         return;
@@ -371,21 +374,21 @@ sub dump_state()
 sub reload_state()
 {
     return if (!defined $c->{'state_dump'});
-    
+
     if (!open(F, $c->{'state_dump'})) {
         warn "$alert_me: could not open state dump " . $c->{'state_dump'} . " for reading: $!\n";
         return;
     }
-    
+
     my $l = <F>;
     warn Dumper($l);
     my $state = from_json($l);
     warn Dumper($state);
-    
+
     close(F);
-    
+
     return if (!defined $state->{'registry'});
-    
+
     my $reg = $net->{'registry'};
     foreach my $radio (values %{ $state->{'registry'} }) {
         if (!defined $reg->{$radio->{'id'}}) {
@@ -397,7 +400,7 @@ sub reload_state()
             $reg->{$radio->{'id'}}{$k} = $radio->{$k};
         }
     }
-    
+
     $net->registry_scan(1);
 }
 
@@ -408,19 +411,19 @@ sub cmd_aprs($$)
 {
     my($rx, $args) = @_;
     #warn "APRS cmd\n";
-    
+
     return if (!$is);
-    
+
     my($cmd, $dst, @words) = @$args;
-    
+
     my $msg = join(' ', @words);
     if (!defined $dst || $dst eq '' || $msg eq '') {
         $net->{'tms'}->queue_msg($rx->{'src_id'}, 'Usage: Aprs <callsign> <message>');
         return;
     }
-    
+
     $dst = uc($dst);
-    
+
     my $aprsmsg = sprintf("%s>APRS::%-9s:%s", $rx->{'registry'}->{'callsign'}, uc($dst), $msg);
     #print "$aprsmsg\n";
     warn "APRS-IS message gateway: TRBO>IS "
@@ -537,7 +540,7 @@ sub cmd_noaa($$)
         || warn "Error, calling get_weather() failed: $@\n";
 
     my ($place, $temp_c, $humidity, $conditions, $wind_dir, $wind_kmph, $pressure, $updated, $clouds, $dew_point_c, $visibility_km);
-    
+
     foreach (@$arrayref) {
         print "MATCH:\n";
         while (($key, $value) = each %{$_}) {
@@ -592,7 +595,7 @@ sub cmd_noaa($$)
 sub cmd_ping($$)
 {
     my($rx) = @_;
-    
+
     my $datestring = gmtime();
     $net->{'tms'}->queue_msg($rx->{'src_id'}, 'Echo to radio: ' . $rx->{'src_id'} . ' GMT ' . $datestring);
 }
@@ -620,11 +623,11 @@ sub cmd_sms($$)
     #my $req = HTTP::Request->new(POST =>'http://bulksms.vsms.net:5567/eapi/submission/send_sms/2/2.0');
     my $req = HTTP::Request->new(POST =>'http://bulksms.vsms.net/eapi/submission/send_sms/2/2.0');
     $req->content_type('application/x-www-form-urlencoded');
-    $req->content('username=' . $rx->{'registry'}->{'sms_username'} . '&password=' . $rx->{'registry'}->{'sms_password'} . '&msisdn=' . $dst . 
+    $req->content('username=' . $rx->{'registry'}->{'sms_username'} . '&password=' . $rx->{'registry'}->{'sms_password'} . '&msisdn=' . $dst .
 	'&sender=' . $rx->{'registry'}->{'sms_sender_id'} . '&repliable=0' . '&message= ' . $msg .
 	" From:$rx->{'registry'}->{'short_callsign'} $rx->{'registry'}->{'sms_reply_phone'}"
     );
-    print 'username=' . $rx->{'registry'}->{'sms_username'} . '&password=xxxx' . '&msisdn=' . $dst . 
+    print 'username=' . $rx->{'registry'}->{'sms_username'} . '&password=xxxx' . '&msisdn=' . $dst .
 	'&sender=' . $rx->{'registry'}->{'sms_sender_id'} . '&repliable=0' . '&message=' . $msg .
         " From:" . $rx->{'registry'}->{'short_callsign'} . " " . $rx->{'registry'}->{'sms_reply_phone'} . "\n";
 
@@ -709,9 +712,9 @@ sub cmd_who($$)
     my($rx, $args) = @_;
 
     my($cmd, $dst) = @$args;
-    
+
     my $now = time();
-    
+
     if (defined $dst) {
         my @matches;
         my $match;
@@ -736,7 +739,7 @@ sub cmd_who($$)
             $net->{'tms'}->queue_msg($rx->{'src_id'}, 'Multiple matches: ' . join(' ', @matches));
             return;
         }
-        
+
         my $s = '' . join(' ', @matches);
         if (defined $match->{'last_heard'}) {
             $s .= ' Heard ' . dur_str($now - $match->{'last_heard'});
@@ -748,11 +751,11 @@ sub cmd_who($$)
             $s .= ' Lat ' . $match->{'last_lat'};
             $s .= ' Lng ' . $match->{'last_lng'};
         }
-        
+
         $net->{'tms'}->queue_msg($rx->{'src_id'}, $s);
         return;
     }
-    
+
     my @here;
     foreach my $radio (sort { $b->{'last_heard'} <=> $a->{'last_heard'} } values %{ $net->{'registry'} }) {
         #warn Dumper($radio);
@@ -763,12 +766,12 @@ sub cmd_who($$)
                 $s = lc($s);
             }
             if (defined $radio->{'last_loc'} && $now - $radio->{'last_loc'} < 15*60 && ($radio->{'last_lat'})) {
-                $s .= '*'; 
+                $s .= '*';
             }
             push @here, $s;
         }
     }
-    
+
     $net->{'tms'}->queue_msg($rx->{'src_id'}, 'Available: ' . join(' ', @here));
 }
 
@@ -778,7 +781,7 @@ sub cmd_who($$)
 sub send_help($)
 {
     my($id) = @_;
-    
+
     $net->{'tms'}->queue_msg($id, 'ARS-E Commands: APRS, email, NOAA, Ping SMS, Who');
 }
 
@@ -828,18 +831,18 @@ sub cmd_get_email($$)
 sub process_msg($)
 {
     my($rx) = @_;
-    
+
     if ($rx->{'text'} =~ /^\s*([a-z]+)\s*/i) {
         my($cmd) = lc($1);
-        
+
         warn "process_msg cmd '$cmd'\n";
-        
+
         my $t = $rx->{'text'};
         $t =~ s/^\s+//;
         $t =~ s/\s+$//;
         $t =~ s/\s+/ /g;
         my @args = split(' ', $t);
-        
+
         if (defined $cmds{$cmd}) {
             $cmds{$cmd}($rx, \@args);
             return;
@@ -847,30 +850,30 @@ sub process_msg($)
     } else {
         warn "process_msg cmd no match\n";
     }
-    
+
     send_help($rx->{'src_id'});
 }
 
 sub spool_read($)
 {
     my($f) = @_;
-    
+
     if (!open(F, $f)) {
         warn "Could not open $f for reading: $!\n";
         return;
     }
-    
+
     my $dst_l = <F>;
     my $msg = '';
     while (my $l = <F>) {
         $msg .= $l;
     }
-    
+
     if (!close(F)) {
         warn "Could not close $f after reading: $!\n";
         return;
     }
-    
+
     $dst_l =~ s/\s+//gs;
     if ($dst_l !~ /^(\@{0,1})(\d+)$/) {
         warn "Spool file $f contained invalid destination: '$dst_l'\n";
@@ -878,16 +881,16 @@ sub spool_read($)
     }
     my $group_msg = ($1 eq '@') ? 1 : 0;
     my $dst = $2;
-    
+
     $msg =~ s/^\s+//s;
     $msg =~ s/\s+$//s;
     $msg =~ s/\s+/ /gs;
-    
+
     if ($msg eq '') {
         warn "Spool file $f contained empty message\n";
         return;
     }
-    
+
     warn "MSG from spool to $dst_l: $msg\n";
     $net->{'tms'}->queue_msg($dst, $msg, $group_msg);
 }
@@ -895,11 +898,11 @@ sub spool_read($)
 sub scan_spool($)
 {
     my($dir) = @_;
-    
+
     opendir(D, $dir) || die "Could not open $dir for reading directory: $!";
     my @files = grep { /\.msg$/ && -f "$dir/$_" } readdir(D);
     closedir(D) || die "Could not close directory $dir: $!";
-    
+
     foreach my $f (@files) {
         my $fp = "$dir/$f";
         warn "processing spool file '$fp'\n";
@@ -911,7 +914,7 @@ sub scan_spool($)
 sub consider_loc_requests()
 {
     my $reg = $net->{'registry'};
-    
+
     foreach my $id (keys %{ $reg }) {
         if (defined $reg->{$id}->{'consider_loc_req'} && $reg->{$id}->{'consider_loc_req'} < time()) {
             my $radio = $reg->{$id};
@@ -984,7 +987,7 @@ while (1) {
         if (!$is->connected()) {
             is_connect();
         }
-        
+
         while (my $is_rx = $is->getline(1)) {
             #print "IS: $is_rx\n";
             next if ($is_rx =~ /^#/);
@@ -1007,12 +1010,12 @@ while (1) {
             $is_next_beacon = time() + $is_beacon_int;
         }
     }
-    
+
     # scan for messages which should be sent
     if (defined $c->{'tms_incoming_spool'}) {
         scan_spool($c->{'tms_incoming_spool'});
     }
-    
+
     my $rx = $net->receive();
 
     if (!$rx) {
@@ -1024,14 +1027,14 @@ while (1) {
         next;
     }
     #warn Dumper($rx);
-    
+
     if (!defined $rx->{'class'}) {
         # ouch!
-        
+
     } elsif ($rx->{'class'} eq 'ars') {
         if ($rx->{'msg'} eq 'hello') {
             # could have some policy here on what to accept...
-            
+
             # register radio internally and start polling it
 	    $net->register_radio($rx);
 	    # after 10 minutes, check if we're getting loc packets, and if not,
@@ -1040,7 +1043,7 @@ while (1) {
                 $rx->{'registry'}->{'consider_loc_req'} = time() + 600;
             }
         }
-        
+
     } elsif ($rx->{'class'} eq 'loc') {
         if ($rx->{'msg'} eq 'loc' && defined $rx->{'latitude'}) {
             if (!($c->{'gps_req_interval'})) {
@@ -1067,11 +1070,10 @@ while (1) {
             }
         }
         $rx->{'registry'}->{'last_loc'} = time();
-        
+
     } elsif ($rx->{'class'} eq 'tms') {
         if ($rx->{'msg'} eq 'msg') {
             process_msg($rx);
         }
     }
 }
-
