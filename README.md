@@ -57,7 +57,7 @@ cd ..
 Install the TRBO-NET arsed program  
 
 ```
-git clone https://github.com/KD8EYF/TRBO-NET.git  
+git clone https://github.com/NicoVarg99/TRBO-NET.git  
 cd TRBO-NET/  
 perl Makefile.PL  
 make  
