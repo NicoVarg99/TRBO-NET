@@ -126,7 +126,10 @@ sudo apt-get install apache2 libapache2-mod-php
 sudo cp ~/src/TRBO-NET/web/* /var/www/html/
 ```
 Edit `/etc/systemd/system/multi-user.target.wants/apache2.service` and change `PrivateTmp=true` to `false`
-
+```
+sudo systemctl restart apache2
+sudo systemctl daemon-reload
+```
 
 ## How To Use
 - send text message to gateway radio's ID: it has 'who' command to list registered radios ('w' for short).  
