@@ -101,8 +101,9 @@ ip route add 12.0.0.0/8 via 192.168.11.1 dev bnep0
 `
 to file /etc/dhcpcd.exit-hook
 
-Plug your radio programming cable to the PC.
-Now it is time to `reboot`
+Plug your radio programming cable to the PC or connect the radio via Bluetooth.
+Device should enumerate and automatically create a network interface. If not check kernel support.
+Now it is time to `reboot`.
 
 RUN THE PROGRAM!
 ```
@@ -121,12 +122,10 @@ vi /etc/rc.local
 ## Optional: web interface
 ### Install Apache webserver  
 ```
-apt-get install apache2 libapache2-mod-php
-cp ~/src/TRBO-NET/web/* /var/www/html/
+sudo apt-get install apache2 libapache2-mod-php
+sudo cp ~/src/TRBO-NET/web/* /var/www/html/
 ```
-
-connect turbo radio to Linux box using USB  
-Device should enumerate and automatically create a network interface. If not check kernel support  
+Edit `/etc/systemd/system/multi-user.target.wants/apache2.service` and change `PrivateTmp=true` to `false`
 
 
 ## How To Use
