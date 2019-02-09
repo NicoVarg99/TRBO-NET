@@ -121,8 +121,8 @@ vi /etc/rc.local
 ## Optional: web interface
 ### Install Apache webserver  
 ```
-apt-get install apache2 libapache2-mod-php5  
-cp ~/src/TRBO-NET/web/* /var/www/  
+apt-get install apache2 libapache2-mod-php
+cp ~/src/TRBO-NET/web/* /var/www/html/
 ```
 
 connect turbo radio to Linux box using USB  
