@@ -1052,6 +1052,7 @@ while (1) {
                     push @upd_q,{
                         'latitude' => $rx->{'latitude'},
                         'longitude' => $rx->{'longitude'},
+                        'altitude' => $rx->{'altitude'},
                         'symbol'   => $rx->{'registry'}->{'symbol'},
                         'callsign' => $rx->{'registry'}->{'callsign'}
                     };
