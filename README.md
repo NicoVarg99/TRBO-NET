@@ -39,10 +39,9 @@ sudo apt-get install build-essential openssh-server git libyaml-tiny-perl libdat
 Download and install the Ham APRS module
 ```
 mkdir ~/src  
-cd ~/src  
-wget http://search.cpan.org/CPAN/authors/id/H/HE/HESSU/Ham-APRS-FAP-1.20.tar.gz  
-tar -zxvf ./Ham-APRS-FAP-1.20.tar.gz  
-cd Ham-APRS-FAP-1.20  
+cd ~/src
+git clone https://github.com/NicoVarg99/perl-aprs-fap.git
+cd perl-aprs-fap 
 perl Makefile.PL  
 make  
 sudo make install
