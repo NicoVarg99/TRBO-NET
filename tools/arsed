@@ -191,18 +191,21 @@ sub push_updates()
 
     foreach my $ent (@upd_q) {
         my $aprs_position = Ham::APRS::FAP::make_position(
-            $ent->{'latitude'},
-            $ent->{'longitude'},
+            $ent->{'latitude'}, # lat
+            $ent->{'longitude'}, # lon
             -1, # speed
             -1, # course
             (defined $ent->{'altitude'}) ? $ent->{'altitude'} : -10000, # altitude
             (defined $ent->{'symbol'}) ? $ent->{'symbol'} : '/[', # symbol
-            1, # compression
-            0); # no ambiguity
-        #print "$aprs_position\n";
+            { # options
+              "compression" => 0, # no compression
+              "ambiguity" => 0, # no ambiguity
+              "timestamp" => time() # no ambiguity
+            });
+        print "$aprs_position\n";
 
-        my $packet = sprintf('%s>APTR01:!%s', $ent->{'callsign'}, $aprs_position);
-        #print "$packet\n";
+        my $packet = sprintf('%s>APTR01:%s', $ent->{'callsign'}, $aprs_position);
+        print "$packet\n";
 
 	if ($aprs_enable == 1){
             my $ok = $is->sendline($packet);
@@ -1000,6 +1003,7 @@ while (1) {
                     'latitude' => $c->{'latitude'},
                     'longitude' => $c->{'longitude'},
                     'symbol' => $c->{'symbol'},
+                    'altitude' => $c->{'altitude'},
                     'callsign' => $c->{'callsign'}
                 };
                 push_updates();
