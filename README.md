@@ -1,10 +1,4 @@
 # ARS-E DAEMON AUTOMATIC REGISTRATION SERVICE EXTENDABLE  
-
-### Running Installations  
-[OH2CH - Finland](http://oh2ch.org/trbo/state.php)
-
-[W8FSM - Fenton, MI](http://ars.moses.bz/)
-
 ### Installation Examples / Demos
 [KB9MWR Video](https://youtu.be/gxjyrYZn3Ds)
 
