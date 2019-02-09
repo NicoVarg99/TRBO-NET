@@ -197,6 +197,7 @@ sub configure_radio($$)
     $self->{'reg_call'}->{$rx->{'callsign'}} = $radio;
 
     $radio->{'symbol'} = $rx->{'symbol'};
+    $radio->{'altitude'} = $rx->{'altitude'};
 
     return $radio;
 }
