@@ -198,6 +198,7 @@ sub configure_radio($$)
 
     $radio->{'symbol'} = $rx->{'symbol'};
     $radio->{'altitude'} = $rx->{'altitude'};
+    $radio->{'comment'} = $rx->{'comment'};
 
     return $radio;
 }

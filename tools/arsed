@@ -200,12 +200,13 @@ sub push_updates()
             { # options
               "compression" => 0, # no compression
               "ambiguity" => 0, # no ambiguity
-              "timestamp" => time() # no ambiguity
+              "timestamp" => time(), # current timestamp
+              "comment" => (defined $ent->{'comment'}) ? $ent->{'comment'} : '',
             });
-        print "$aprs_position\n";
+        #print "$aprs_position\n";
 
         my $packet = sprintf('%s>APTR01:%s', $ent->{'callsign'}, $aprs_position);
-        print "$packet\n";
+        #print "$packet\n";
 
 	if ($aprs_enable == 1){
             my $ok = $is->sendline($packet);
@@ -1004,7 +1005,8 @@ while (1) {
                     'longitude' => $c->{'longitude'},
                     'symbol' => $c->{'symbol'},
                     'altitude' => $c->{'altitude'},
-                    'callsign' => $c->{'callsign'}
+                    'callsign' => $c->{'callsign'},
+                    'comment' => $c->{'comment'}
                 };
                 push_updates();
             }
@@ -1051,13 +1053,13 @@ while (1) {
                 # got loc but not requested - disable
                 $net->{'loc'}->request_no_locs($rx->{'src_id'});
             } elsif (defined $rx->{'registry'} && defined $rx->{'registry'}->{'callsign'} && consider_aprsis_beacon($rx)) {
-
                 if ($aprs_enable == 1){
                     push @upd_q,{
                         'latitude' => $rx->{'latitude'},
                         'longitude' => $rx->{'longitude'},
                         'altitude' => $rx->{'altitude'},
                         'symbol'   => $rx->{'registry'}->{'symbol'},
+                        'comment' => $rx->{'registry'}->{'comment'},
                         'callsign' => $rx->{'registry'}->{'callsign'}
                     };
                 } else {
@@ -1065,6 +1067,7 @@ while (1) {
                         'latitude' => 19.380834,# Test Location.
                         'longitude' => -99.176753,# Test Location.
                         'symbol'   => $rx->{'registry'}->{'symbol'},
+                        'comment'   => $rx->{'registry'}->{'comment'},
                         'callsign' => $rx->{'registry'}->{'callsign'}
                     };
                 }
