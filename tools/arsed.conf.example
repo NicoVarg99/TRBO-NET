@@ -102,12 +102,14 @@ sms_username:	yourusername
 sms_password:	1234
 sms_reply_id:	yourid
 sms_reply_phone:	+52(55)12345687
+comment: QRV 433.450
 ---
 id:             3341005
 callsign:       XE1B-P1
 short_callsign: XE1B
 name:           Marcos
 symbol:         /[
+altitude:       1800
 ---
 id: 		3341006
 callsign:	XE1LM-P1
