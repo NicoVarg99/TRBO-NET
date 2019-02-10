@@ -8,6 +8,10 @@
 
 [KD8EYF Beagle Bone Control Station](http://i.imgur.com/9Uu0T.jpg)  
 
+#### 2019-02-10 Updates
+* configurable altitude (useful for fixed stations)
+* configurable station symbol (2013 commit didn't work)
+* configurable APRS comment
 
 #### 2015-03-05 Updates
   Created SMS send function.
