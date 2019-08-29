@@ -449,12 +449,15 @@ sub cmd_ctl($$)
     warn "Control message: "
         . $rx->{'registry'}->{'callsign'} . '>' . $dst
         . ": $msg\n";
-
-    if ($rx->{'registry'}->{'id'} eq '3341010') {
-	if ($dst eq 'aprs') {
-	    $aprs_enable = $msg;
-	    $net->{'tms'}->queue_msg(3341010, "APRS Enable = " . $aprs_enable);
-	}
+    if ($rx->{'registry'}->{'id'} eq '2223305') {
+    	if ($dst eq 'aprs') {
+    	    if ($aprs_enable) {
+            $aprs_enable = 0;
+          } else {
+            $aprs_enable = 1;
+          }
+    	    $net->{'tms'}->queue_msg($rx->{'registry'}->{'id'}, "APRS Enable = " . $aprs_enable);
+    	}
     }
 
 }
@@ -513,7 +516,7 @@ sub cmd_kill($$)
 
     my($cmd, $dst, @words) = @$args;
 
-    $net->{'tms'}->queue_msg(3341010, "Radio " . $rx->{'src_id'} . ' killed ARSED.');
+    $net->{'tms'}->queue_msg(2223305, "Radio " . $rx->{'src_id'} . ' killed ARSED.');
 
     die("Warning: radio " . $rx->{'src_id'} . " killed ARSED.");
 }

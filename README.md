@@ -45,7 +45,7 @@ Download and install the Ham APRS module
 mkdir ~/src  
 cd ~/src
 git clone https://github.com/NicoVarg99/perl-aprs-fap.git
-cd perl-aprs-fap 
+cd perl-aprs-fap
 perl Makefile.PL  
 make  
 sudo make install
@@ -78,7 +78,7 @@ For e-mail sending:
 
 ```
 sudo cpan Email::Send::SMTP::Gmail
-cpan Net::SMTPS
+sudo cpan Net::SMTPS
 ```
 
 
